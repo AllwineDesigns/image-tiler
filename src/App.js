@@ -91,8 +91,8 @@ function App() {
   return (
     <Grid container classes={{ root: classes.container }}>
       <Grid item xs={6}>DPI:</Grid><Grid item xs={6}><TextField inputRef={dpiRef} defaultValue="225" fullWidth={true}/></Grid>
-      <Grid item xs={6}>Input Width:</Grid><Grid item xs={6}><TextField inputRef={widthRef} defaultValue="auto" fullWidth={true}/></Grid>
-      <Grid item xs={6}>Input Height:</Grid><Grid item xs={6}><TextField inputRef={heightRef} defaultValue="auto" fullWidth={true}/></Grid>
+      <Grid item xs={6}>Width:</Grid><Grid item xs={6}><TextField inputRef={widthRef} defaultValue="auto" fullWidth={true}/></Grid>
+      <Grid item xs={6}>Height:</Grid><Grid item xs={6}><TextField inputRef={heightRef} defaultValue="auto" fullWidth={true}/></Grid>
       <Grid item xs={6}>Rows:</Grid><Grid item xs={6}><TextField inputRef={rowsRef} defaultValue="2" fullWidth={true}/></Grid>
       <Grid item xs={6}>Cols:</Grid><Grid item xs={6}><TextField inputRef={colsRef} defaultValue="2" fullWidth={true}/></Grid>
       <Grid item xs={12}><Button fullWidth={true} classes={{ root: classes.button }} variant="contained" component="label">Convert File
