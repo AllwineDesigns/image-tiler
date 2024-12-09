@@ -43,6 +43,7 @@ function App() {
   const colsRef = useRef(null);
   const fileRef = useRef(null);
   const [ wrapTiles, setWrapTiles ] = useState(true);
+  const [ cutRects, setCutRects ] = useState(false);
 
   const handleChange = (e) => {
     const rows = parseInt(rowsRef.current.value) || 2;
@@ -84,32 +85,54 @@ function App() {
         const tileWidth = img.width/cols;
         const tileHeight = img.height/rows;
 
-        const images = [];
-        for(let r = 0; r < rows; r++) {
-          for(let c = 0; c < cols; c++) {
-            context.clearRect(0,0,canvas.width, canvas.height);
-            context.drawImage(img, c*tileWidth, r*tileHeight, tileWidth, tileHeight, 0, 0, canvas.width, canvas.height);
+        if(cutRects) {
+          for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+              context.clearRect(0,0,canvas.width, canvas.height);
+              context.drawImage(img, c*tileWidth, r*tileHeight, tileWidth, tileHeight, 0, 0, canvas.width, canvas.height);
 
-            if(wrapTiles) {
               const tileSVGStr = renderToString(
                 <svg width={canvas.width} height={canvas.height} viewBox={"0 0 " + canvas.width + " " + canvas.height} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
                   <image imageRendering="pixelated" x={0} y={0} width={canvas.width} height={canvas.height} xlinkHref={canvas.toDataURL()}/>
                 </svg>);
 
-  //            const svgURL = "data:image/svg+xml," + encodeURIComponent(tileSVGStr);
               const svgURL = "data:image/svg+xml;base64," + btoa(tileSVGStr);
-              images.push(<image key={`${r},${c}`} imageRendering="pixelated" x={c*canvas.width} y={r*canvas.height} width={canvas.width} height={canvas.height} xlinkHref={svgURL}/>);
-            } else {
-              images.push(<image key={`${r},${c}`} imageRendering="pixelated" x={c*canvas.width} y={r*canvas.height} width={canvas.width} height={canvas.height} xlinkHref={canvas.toDataURL()}/>);
+
+              const svgStr = renderToString(<svg width={width ? (width/dpi/cols) + "in" : (img.width/dpi/cols) + "in"} height={height ? (height/dpi/rows) + "in" : (img.height/dpi/rows) + "in" } viewBox={"0 0 " + (width ? width/cols : img.width/cols) + " " + (height ? height/rows : img.height/rows)} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
+                <image key={`${r},${c}`} imageRendering="pixelated" x={0} y={0} width={canvas.width} height={canvas.height} xlinkHref={svgURL}/>
+                <rect x={0} y={0} width={canvas.width} height={canvas.height} style={{fill: "none", stroke: "black", strokeOpacity: 1 }}/>
+              </svg>);
+
+              downloadString(svgStr, { type: 'image/svg+xml', filename: filename + "-" + r + "-" + c + ".svg" });
             }
           }
+        } else {
+          const images = [];
+          for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+              context.clearRect(0,0,canvas.width, canvas.height);
+              context.drawImage(img, c*tileWidth, r*tileHeight, tileWidth, tileHeight, 0, 0, canvas.width, canvas.height);
+
+              if(wrapTiles) {
+                const tileSVGStr = renderToString(
+                  <svg width={canvas.width} height={canvas.height} viewBox={"0 0 " + canvas.width + " " + canvas.height} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
+                    <image imageRendering="pixelated" x={0} y={0} width={canvas.width} height={canvas.height} xlinkHref={canvas.toDataURL()}/>
+                  </svg>);
+
+    //            const svgURL = "data:image/svg+xml," + encodeURIComponent(tileSVGStr);
+                const svgURL = "data:image/svg+xml;base64," + btoa(tileSVGStr);
+                images.push(<image key={`${r},${c}`} imageRendering="pixelated" x={c*canvas.width} y={r*canvas.height} width={canvas.width} height={canvas.height} xlinkHref={svgURL}/>);
+              } else {
+                images.push(<image key={`${r},${c}`} imageRendering="pixelated" x={c*canvas.width} y={r*canvas.height} width={canvas.width} height={canvas.height} xlinkHref={canvas.toDataURL()}/>);
+              }
+            }
+          }
+          const svgStr = renderToString(<svg width={width ? width/dpi + "in" : img.width/dpi + "in"} height={height ? height/dpi + "in" : img.height/dpi + "in" } viewBox={"0 0 " + (width ? width : img.width) + " " + (height ? height : img.height)} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
+            {images}
+          </svg>);
+
+          downloadString(svgStr, { type: 'image/svg+xml', filename: filename + ".svg" });
         }
-
-        const svgStr = renderToString(<svg width={width ? width/dpi + "in" : img.width/dpi + "in"} height={height ? height/dpi + "in" : img.height/dpi + "in" } viewBox={"0 0 " + (width ? width : img.width) + " " + (height ? height : img.height)} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
-          {images}
-        </svg>);
-
-        downloadString(svgStr, { type: 'image/svg+xml', filename: filename + ".svg" });
 
 //        const svgURL = "data:image/svg+xml;base64," + btoa(svgStr);
 //        const svgStr2 = renderToString(<svg width={width ? width/dpi + "in" : img.width/dpi + "in"} height={height ? height/dpi + "in" : img.height/dpi + "in" } viewBox={"0 0 " + (width ? width : img.width) + " " + (height ? height : img.height)} xmlns="http://www.w3.org/2000/svg" xmlnsXlink="http://www.w3.org/1999/xlink">
@@ -131,6 +154,7 @@ function App() {
       <Grid item xs={6}>Rows:</Grid><Grid item xs={6}><TextField inputRef={rowsRef} defaultValue="2" fullWidth={true}/></Grid>
       <Grid item xs={6}>Cols:</Grid><Grid item xs={6}><TextField inputRef={colsRef} defaultValue="2" fullWidth={true}/></Grid>
       <Grid item xs={6} classes={ { root: classes.checkboxLabel }}>Wrap Tiles In SVG:</Grid><Grid item xs={6}><Checkbox checked={wrapTiles} onChange={(e) => setWrapTiles(e.target.checked)}/></Grid>
+      <Grid item xs={6} classes={ { root: classes.checkboxLabel }}>Add Cut Rectangles:</Grid><Grid item xs={6}><Checkbox checked={cutRects} onChange={(e) => setCutRects(e.target.checked)}/></Grid>
       <Grid item xs={12}><Button fullWidth={true} classes={{ root: classes.button }} variant="contained" component="label">Convert File
         <input type="file" style={{ display: "none" }} ref={fileRef} onChange={handleChange}/>
       </Button></Grid>
